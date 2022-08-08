@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="templates\\styles.css"></link>
+        <link rel="stylesheet" href="templates\\note.css"></link>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.2.0/js/bootstrap.min.js"></script> 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <title>My notes</title>
+    </head>
+    <body class="bg-dark">
+        <div class="workspace">
+            <p class="section-title">Add a new assignment.</p>
+            <div class = "header_workspace" id ="add_item">       
+                <form action="#" method="POST" id="add_new_task_form">
+                    <input type="text"      name="description[]" class="form-control field" placeholder ="Add a description for your new task. (mandatory)" required></input>
+                    <input type="text"      name="comments[]"    class="form-control field" placeholder ="You can add comments to your new task." required></input>
+                    <input type="number"    name="status"        class="form-control field" placeholder ="Set a status for your task. (mandatory | 1 = Finished; 0 = Unfinished)" required></input>
+                    <button class="normalButton add_item_btn" id = "add_btn"> Add new task </button>     
+                </form>
+            </div>
+            <p class="section-title">Modify the comments of your assignment.</p>
+            <div class = "header_workspace" id ="update_comment" style="height: 51px;"> 
+                <form action="#" method="POST" id="modify_comments_form">
+                    <input type="text"     name="comments[]" class="form-control field"  placeholder = "Modify your comments." required style="margin-top: 13px"></input>
+                    <input type="hidden"   name="id" id="note_id" class="form-control field"></input>
+                    <button class="normalButton update_item_btn" style="bottom: 13px;"> Update comments </button>     
+                </form>
+            </div>
+            <?php foreach($assignments as $assignment) :?>
+                <div class="note-background">
+                    <button class="button remove_item_btn"  style="background-color: red"    id="<?= $assignment->getID() ?>"> </button>   <!-- delete task from database -->
+                    <button class="button get_id_btn"       style="background-color: coral"       id="<?= $assignment->getID() ?>"> </button>   <!-- add a new comment -->
+                    <button class="button append_item_btn"  style="background-color: green"  id="<?= $assignment->getID() ?>"> </button>   <!-- change status to finished-->
+                    <p class="note-description" style="word-wrap: break-word;"> <?= $assignment->getTask() ?> </p>
+                    <p class="note-comments" style="word-wrap: break-word;"> <?= nl2br($assignment->getComments())?> </p>
+                    <?php if($assignment->getStatus()==1): ?>
+                        <p class="note-status" style="color: green;">Finished</p>
+                    <?php else: ?>
+                        <p class="note-status" style = "color: red;">Unfinished</p>
+                    <?php endif; ?> 
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </body>
+
+    <script>
+        $(document).on('click', '.remove_item_btn', function(e) {
+            e.preventDefault();
+            let note = $(this).parent();
+            let id= $(this).attr('id');
+            $.ajax({
+                url:"delete.php",
+                data: {id:id},
+                type:"post",
+                success:function(data) {
+                    console.log(data);
+                }
+            });
+            $(note).remove();
+        });
+
+        $(document).on('click', '.add_item_btn', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: "insert.php",
+                data: $("#add_new_task_form").serialize(),
+                type: "post",
+                success:function(data) {
+                    console.log(data);
+                }
+            });
+            document.location.reload();
+        });
+
+        $(document).on('click', '.append_item_btn', function(e) {
+            e.preventDefault();
+            let id= $(this).attr('id');
+            $.ajax({
+                url: "updateStatus.php",
+                data: {id:id},   
+                type: "post", 
+                success:function(data) {
+                    console.log(data);
+                }        
+            });
+            document.location.reload();
+        });
+
+        $(document).on('click', '.get_id_btn', function(e) {
+            e.preventDefault();
+            $("#note_id").val($(this).attr('id'));
+        });
+
+        $(document).on('click', '.update_item_btn', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: "updateComments.php",
+                data: $("#modify_comments_form").serializeArray(),
+                type: "post",
+                success:function(data) {
+                    console.log(data);
+                }
+            });
+            document.location.reload();
+        });
+    </script>
+</html>
